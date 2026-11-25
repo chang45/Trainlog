@@ -246,7 +246,8 @@ onMounted(load)
           <div v-else class="chart">
             <div v-for="day in chart" :key="day.date" class="chart-col" :title="`${day.date} · ${day.minutes} 分钟`">
               <div class="chart-bar-wrap">
-                <div class="chart-bar" :class="{ zero: day.zero }" :style="{ height: day.height + '%' }"></div>
+                <div class="chart-bar" :class="{ zero: day.zero }"
+                     :style="day.zero ? null : { height: day.height + '%' }"></div>
               </div>
               <span class="chart-label">{{ day.label }}</span>
             </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { fetchStats } from '../api/training'
 import RecordDialog from '../components/RecordDialog.vue'
 import { formatDuration, monthDay } from '../utils/format'
@@ -10,6 +10,11 @@ const days = ref(30)
 const stats = ref(null)
 const loading = ref(true)
 const dialogOpen = ref(false)
+const viewportWidth = ref(typeof window === 'undefined' ? 1280 : window.innerWidth)
+
+function onResize() {
+  viewportWidth.value = window.innerWidth
+}
 
 async function load() {
   loading.value = true
@@ -22,10 +27,17 @@ async function load() {
   }
 }
 
+// 日期标签密度：7 天每天都标；30 天桌面端每天都标；窄屏和 90 天才隔几天标
+const labelStep = computed(() => {
+  if (days.value <= 7) return 1
+  if (days.value <= 31) return viewportWidth.value <= 900 ? 5 : 1
+  return 7
+})
+
 const chart = computed(() => {
   const daily = stats.value?.daily || []
   const max = Math.max(60, ...daily.map((d) => d.minutes))
-  const step = Math.max(1, Math.ceil(daily.length / 7))
+  const step = labelStep.value
   return daily.map((d, index) => ({
     ...d,
     label: index % step === 0 || index === daily.length - 1 ? monthDay(d.date) : '',
@@ -36,6 +48,7 @@ const chart = computed(() => {
 
 const chartGap = computed(() => {
   const count = stats.value?.daily?.length || 0
+  if (labelStep.value === 1 && count > 14) return '3px'
   if (count > 40) return '3px'
   if (count > 14) return '5px'
   return '8px'
@@ -67,6 +80,11 @@ watch(days, load)
 
 onMounted(() => {
   load()
+  window.addEventListener('resize', onResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
 })
 </script>
 
@@ -128,11 +146,12 @@ onMounted(() => {
           <p>记录一次训练，这里就会出现趋势。</p>
           <button class="btn btn-sm" type="button" @click="dialogOpen = true">记录训练</button>
         </div>
-        <div v-else class="chart" :style="{ gap: chartGap }">
+        <div v-else class="chart" :class="{ dense: labelStep === 1 && days > 14 }" :style="{ gap: chartGap }">
           <div v-for="(day, index) in chart" :key="day.date" class="chart-col"
                :title="`${day.date} · ${day.minutes} 分钟`">
             <div class="chart-bar-wrap">
-              <div class="chart-bar" :class="{ zero: day.zero }" :style="{ height: day.height + '%' }"></div>
+              <div class="chart-bar" :class="{ zero: day.zero }"
+                   :style="day.zero ? null : { height: day.height + '%' }"></div>
             </div>
             <span class="chart-label">{{ day.label }}</span>
           </div>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.examplexxx.trainlog.mapper.TrainingRecordMapper">
+
+    <!-- 1. 分页查询训练记录 -->
+    <select id="findPage" resultType="org.examplexxx.trainlog.entity.TrainingRecord">
+        SELECT
+        id,
+        user_id,
+        title,
+        category,
+        type,
+        training_date,
+        duration_minutes,
+        distance_km,
+        sets,
+        reps,
+        weight_kg,
+        calories,
+        intensity,
+        notes,
+        created_at,
+        updated_at
+        FROM training_record
+        WHERE user_id = #{userId}
+
+        <!-- 关键词模糊搜索 -->
+        <if test="q.keyword != null and q.keyword != ''">
+            AND (title LIKE CONCAT('%', #{q.keyword}, '%')
+            OR notes LIKE CONCAT('%', #{q.keyword}, '%'))
+        </if>
+
+        <!-- 按训练类型筛选 -->
+        <if test="q.type != null and q.type != ''">
+            AND type = #{q.type}
+        </if>
+
+        <!-- 开始日期 -->
+        <if test="q.from != null">
+            AND training_date &gt;= #{q.from}
+        </if>
+
+        <!-- 结束日期 -->
+        <if test="q.to != null">
+            AND training_date &lt;= #{q.to}
+        </if>
+
+        ORDER BY training_date DESC, id DESC
+        LIMIT #{q.offset}, #{q.size}
+    </select>
+
+    <!-- 2. 查询总条数（配合分页） -->
+    <select id="countPage" resultType="long">
+        SELECT COUNT(*)
+        FROM training_record
+        WHERE user_id = #{userId}
+
+        <if test="q.keyword != null and q.keyword != ''">
+            AND (title LIKE CONCAT('%', #{q.keyword}, '%')
+            OR notes LIKE CONCAT('%', #{q.keyword}, '%'))
+        </if>
+
+        <if test="q.type != null and q.type != ''">
+            AND type = #{q.type}
+        </if>
+
+        <if test="q.from != null">
+            AND training_date &gt;= #{q.from}
+        </if>
+
+        <if test="q.to != null">
+            AND training_date &lt;= #{q.to}
+        </if>
+    </select>
+
+    <!-- 3. 统计总概览：总次数、总时长、总距离、总卡路里 -->
+    <select id="totals" resultType="org.examplexxx.trainlog.vo.TrainingStatsVO">
+        SELECT
+            COUNT(*)                              AS sessions,
+            COALESCE(SUM(duration_minutes), 0)   AS totalMinutes,
+            COALESCE(SUM(distance_km), 0)         AS totalDistanceKm,
+            COALESCE(SUM(calories), 0)           AS totalCalories
+        FROM training_record
+        WHERE user_id = #{userId}
+          AND training_date BETWEEN #{from} AND #{to}
+    </select>
+
+    <!-- 4. 按天统计：日期、训练次数、训练时长 -->
+    <resultMap id="dailyStatMap" type="org.examplexxx.trainlog.vo.TrainingStatsVO$DailyStat">
+        <result column="stat_date" property="date"/>
+        <result column="sessions" property="sessions"/>
+        <result column="minutes" property="minutes"/>
+    </resultMap>
+
+    <select id="daily" resultMap="dailyStatMap">
+        SELECT
+            training_date                        AS stat_date,
+            COUNT(*)                             AS sessions,
+            COALESCE(SUM(duration_minutes), 0)   AS minutes
+        FROM training_record
+        WHERE user_id = #{userId}
+          AND training_date BETWEEN #{from} AND #{to}
+        GROUP BY training_date
+        ORDER BY training_date
+    </select>
+
+    <!-- 5. 按训练类型分组统计：类型、时长、次数 -->
+    <select id="byType" resultType="org.examplexxx.trainlog.vo.TrainingStatsVO$TypeStat">
+        SELECT
+            type,
+            COALESCE(SUM(duration_minutes), 0)    AS minutes,
+            COUNT(*)                              AS sessions
+        FROM training_record
+        WHERE user_id = #{userId}
+          AND training_date BETWEEN #{from} AND #{to}
+        GROUP BY type
+        ORDER BY minutes DESC
+    </select>
+
+</mapper>

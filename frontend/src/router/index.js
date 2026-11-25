@@ -3,6 +3,7 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import AppLayout from '../components/AppLayout.vue'
 import DashboardView from '../views/DashboardView.vue'
+import PlanView from '../views/PlanView.vue'
 import RecordsView from '../views/RecordsView.vue'
 import StatsView from '../views/StatsView.vue'
 import { hasToken } from '../api/http'
@@ -18,6 +19,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         { path: '', name: 'dashboard', component: DashboardView },
+        { path: 'plan', name: 'plan', component: PlanView },
         { path: 'records', name: 'records', component: RecordsView },
         { path: 'stats', name: 'stats', component: StatsView }
       ]

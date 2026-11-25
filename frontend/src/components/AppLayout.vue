@@ -41,6 +41,15 @@ function onLogout() {
           </svg>
           <span>概览</span>
         </router-link>
+        <router-link to="/plan" class="nav-item">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3.5" y="5" width="17" height="15" rx="2.4" />
+            <path d="M8 3.5V7M16 3.5V7M3.5 10h17" />
+            <path d="M8.5 14.5h2M13.5 14.5h2" />
+          </svg>
+          <span>训练计划</span>
+        </router-link>
         <router-link to="/records" class="nav-item">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
                stroke-linecap="round" stroke-linejoin="round">
