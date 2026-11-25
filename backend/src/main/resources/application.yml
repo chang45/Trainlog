@@ -1,0 +1,64 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: trainlog-backend
+  profiles:
+    active: dev
+  redis:
+    host: ${trainlog.redis.host}
+    port: ${trainlog.redis.port}
+    database: ${trainlog.redis.database}
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: "jdbc:mysql://${trainlog.datasource.host}:${trainlog.datasource.port}/${trainlog.datasource.database}?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true"
+    username: ${trainlog.datasource.username}
+    password: ${trainlog.datasource.password}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Shanghai
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+
+app:
+  jwt:
+    # 生产环境请通过环境变量 APP_JWT_SECRET 覆盖
+    secret: ${APP_JWT_SECRET:dev-only-jwt-secret-change-me-0123456789abcdef}
+    ttl-seconds: 7200
+  captcha:
+    length: 4
+    ttl-seconds: 120
+    width: 120
+    height: 40
+    log-code: false
+  register:
+    enabled: ${REGISTER_ENABLED:true}
+    invite-code: ${REGISTER_INVITE_CODE:}
+  security:
+    captcha-per-minute: 20
+    login-per-minute: 10
+    register-per-minute: 5
+    register-per-hour: 3
+    max-failures: 5
+    failure-window-seconds: 600
+    lock-seconds: 600
+  seed:
+    username: ${trainlog.user.username}
+    password: ${trainlog.user.password}
+    nickname: ${trainlog.user.nickname}
+
+cors:
+  allowed-origins: http://localhost:5173,http://127.0.0.1:5173
+
+logging:
+  level:
+    root: INFO
+    com.trainlog: INFO

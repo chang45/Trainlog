@@ -1,0 +1,10 @@
+页面: 210.0 x 297.0 mm (A4=210x297)
+页眉: 'Team # SWBMCM2612781'
+样式 Normal: eastAsia=宋体, size=12.0, bold=None
+样式 Heading 1: eastAsia=黑体, size=14.0, bold=True
+样式 Heading 2: eastAsia=黑体, size=12.0, bold=True
+样式 Heading 3: eastAsia=黑体, size=12.0, bold=False
+标题段落: {'Heading 1': 8, 'Heading 2': 12, 'Heading 3': 24}
+TOC域: 有
+三线表: top=single, bottom=single, left=none (应为 single/single/none)
+表格: 7x2, 表头=['符号定义', '符号说明']

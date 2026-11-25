@@ -1,0 +1,38 @@
+# ==========================================================
+# 示例配置：复制为 application-dev.yml 后填入真实值
+#
+#   cp application-dev.example.yml application-dev.yml
+#
+# application-dev.yml 已经写进 .gitignore，不会被提交到 git。
+# 所有带 ${...} 的值都可以用环境变量覆盖，密钥类建议只用环境变量。
+# ==========================================================
+
+trainlog:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: ${TRAINLOG_DATASOURCE_HOST:127.0.0.1}
+    port: 3306
+    database: trainlog
+    username: ${TRAINLOG_DATASOURCE_USERNAME:root}
+    # 改成你自己的数据库密码，或设置环境变量 TRAINLOG_DATASOURCE_PASSWORD
+    password: ${TRAINLOG_DATASOURCE_PASSWORD:}
+  oss:
+    # 阿里云 AccessKey 属于敏感信息，只通过环境变量传
+    access-key-id: ${TRAINLOG_OSS_ACCESS_KEY_ID:}
+    access-key-secret: ${TRAINLOG_OSS_ACCESS_KEY_SECRET:}
+    endpoint: ${TRAINLOG_OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+    bucket-name: ${TRAINLOG_OSS_BUCKET_NAME:}
+  redis:
+    host: ${TRAINLOG_REDIS_HOST:127.0.0.1}
+    port: ${TRAINLOG_REDIS_PORT:6379}
+    database: ${TRAINLOG_REDIS_DATABASE:1}
+  user:
+    username: ${TRAINLOG_SEED_USERNAME:admin}
+    # 演示账号初始密码，生产环境务必换掉
+    password: ${TRAINLOG_SEED_PASSWORD:change-me}
+    nickname: ${TRAINLOG_SEED_NICKNAME:训练者}
+  jwt:
+    # 至少 32 个字符，生产环境用环境变量 APP_JWT_SECRET 覆盖
+    admin-secret-key: ${APP_JWT_SECRET:dev-only-jwt-secret-change-me-0123456789abcdef}
+    admin-ttl: 720000
+    admin-token-name: admin-token

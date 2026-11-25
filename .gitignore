@@ -1,0 +1,45 @@
+# 后端构建产物
+backend/target/
+backend/db/
+backend/*.log
+backend/hs_err_pid*.log
+
+# 前端依赖与构建产物
+frontend/node_modules/
+frontend/dist/
+frontend/*.log
+
+# 本地工具与截图
+.tools/
+.trash/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# ===== 敏感配置：绝对不要提交 =====
+# 数据库密码、OSS AccessKey、JWT 密钥都在这些文件里
+backend1/TrainLog/src/main/resources/application-dev.yml
+backend1/TrainLog/src/main/resources/application-local.yml
+**/application-local.yml
+
+# 本地环境变量文件
+.env
+.env.*
+!.env.example
+
+# 证书 / 私钥
+*.pem
+*.key
+*.p12
+*.jks
+
+# 日志与崩溃文件
+*.log
+hs_err_pid*
+replay_pid*
