@@ -2,7 +2,9 @@ package org.examplexxx.trainlog.service.Impl;
 
 import jakarta.annotation.PostConstruct;
 import org.examplexxx.trainlog.constant.JwtClaimsConstant;
+import org.examplexxx.trainlog.context.BaseContext;
 import org.examplexxx.trainlog.dto.LoginDTO;
+import org.examplexxx.trainlog.dto.ProfileDTO;
 import org.examplexxx.trainlog.entity.SysUser;
 import org.examplexxx.trainlog.exception.BizException;
 import org.examplexxx.trainlog.mapper.AuthMapper;
@@ -17,9 +19,13 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -140,5 +146,75 @@ public class AuthServiceImpl implements AuthService {
                 jwtProperties.getAdminTtl(), claims);
         return new LoginVO(token, jwtProperties.getAdminTokenName(),
                 jwtProperties.getAdminTtl() / 1000, UserVO.from(user));
+    }
+
+    @Override
+    public UserVO getCurrentUser() {
+        Long userId = BaseContext.getCurrentId();
+        if (userId == null) {
+            throw new BizException(401, "请先登录");
+        }
+        SysUser user = authMapper.findById(userId);
+        if (user == null) {
+            throw new BizException(401, "账号不存在，请重新登录");
+        }
+        return UserVO.from(user);
+    }
+
+    @Override
+    public UserVO updateProfile(ProfileDTO dto) {
+        Long userId = BaseContext.getCurrentId();
+        if (userId == null) {
+            throw new BizException(401, "请先登录");
+        }
+        if (dto == null || dto.getHeightCm() == null || dto.getWeightKg() == null) {
+            throw new BizException(400, "请填写身高和体重");
+        }
+        BigDecimal height = dto.getHeightCm();
+        BigDecimal weight = dto.getWeightKg();
+        if (height.compareTo(BigDecimal.valueOf(50)) < 0
+                || height.compareTo(BigDecimal.valueOf(250)) > 0) {
+            throw new BizException(400, "身高需在 50-250 厘米之间");
+        }
+        if (weight.compareTo(BigDecimal.valueOf(20)) < 0
+                || weight.compareTo(BigDecimal.valueOf(300)) > 0) {
+            throw new BizException(400, "体重需在 20-300 公斤之间");
+        }
+        Integer age = dto.getAge();
+        if (age == null || age < 10 || age > 100) {
+            throw new BizException(400, "请填写年龄（10-100 岁）");
+        }
+        String gender = requireCode(dto.getGender(), "性别", Set.of("MALE", "FEMALE"));
+
+        SysUser user = authMapper.findById(userId);
+        if (user == null) {
+            throw new BizException(401, "账号不存在，请重新登录");
+        }
+        user.setHeightCm(height.setScale(2, RoundingMode.HALF_UP));
+        user.setWeightKg(weight.setScale(2, RoundingMode.HALF_UP));
+        user.setAge(age);
+        user.setGender(gender);
+        user.setDailyCalories(calculateDailyCalories(height, weight, age, gender));
+        authMapper.updateProfile(user);
+        return UserVO.from(user);
+    }
+
+    /** 保存资料时顺带算好每日总消耗（Mifflin-St Jeor × 轻度活动） */
+    private int calculateDailyCalories(BigDecimal height, BigDecimal weight, int age, String gender) {
+        double bmr = 10 * weight.doubleValue() + 6.25 * height.doubleValue() - 5 * age
+                + ("FEMALE".equals(gender) ? -161 : 5);
+        int daily = (int) Math.round(bmr * 1.375);
+        return Math.max(800, Math.min(daily, 10000));
+    }
+
+    private String requireCode(String value, String label, Set<String> allowed) {
+        if (value == null || value.isBlank()) {
+            throw new BizException(400, "请选择" + label);
+        }
+        String code = value.trim().toUpperCase(Locale.ROOT);
+        if (!allowed.contains(code)) {
+            throw new BizException(400, label + "取值不合法");
+        }
+        return code;
     }
 }

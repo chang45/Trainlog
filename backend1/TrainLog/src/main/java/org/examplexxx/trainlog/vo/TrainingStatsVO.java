@@ -43,6 +43,7 @@ public class TrainingStatsVO {
         private LocalDate date;
         private int sessions;
         private int minutes;
+        private int calories;
     }
 
     @Data

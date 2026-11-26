@@ -1,11 +1,37 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, provide, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { clearToken, getUser } from '../api/http'
+import ProfileDialog from './ProfileDialog.vue'
+import { fetchMe } from '../api/auth'
+import { clearToken, getUser, saveUser } from '../api/http'
 
 const router = useRouter()
-// backend1 登录/注册成功时已经把 user 存进 localStorage，这里直接读
 const user = ref(getUser())
+const profileOpen = ref(false)
+// 把当前用户和打开资料弹窗的方法提供给子页面
+provide('currentUser', user)
+provide('openProfile', () => {
+  profileOpen.value = true
+})
+
+onMounted(async () => {
+  try {
+    const me = await fetchMe()
+    user.value = me
+    saveUser(me)
+    // 资料不全时自动弹一次，保证训练/热量推算有足够信息
+    if (!me.heightCm || !me.weightKg || !me.age || !me.gender) {
+      profileOpen.value = true
+    }
+  } catch (e) {
+    // 401 已经由 http 拦截器统一跳转登录页
+  }
+})
+
+function onProfileSaved(updated) {
+  user.value = updated
+  saveUser(updated)
+}
 
 function onLogout() {
   clearToken()
@@ -79,6 +105,13 @@ function onLogout() {
           <div class="user-name">{{ user?.nickname || user?.username || '…' }}</div>
           <div class="user-sub">@{{ user?.username || 'loading' }}</div>
         </div>
+        <button class="icon-btn" type="button" title="个人资料" @click="profileOpen = true">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="3.5" />
+            <path d="M5.5 19c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5" />
+          </svg>
+        </button>
         <button class="icon-btn" type="button" title="退出登录" @click="onLogout">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
                stroke-linecap="round" stroke-linejoin="round">
@@ -94,5 +127,7 @@ function onLogout() {
         <router-view />
       </div>
     </main>
+
+    <ProfileDialog v-model:open="profileOpen" :user="user" @saved="onProfileSaved" />
   </div>
 </template>

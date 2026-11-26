@@ -64,6 +64,23 @@ const weekTotal = computed(() => selectedItems.value.length)
 const weekPercent = computed(() =>
   weekTotal.value ? Math.round((weekDone.value / weekTotal.value) * 100) : 0
 )
+// 计划本身不再让用户填热量，这里统计打卡记录里已经消耗的热量
+const weekBurnedCalories = computed(() => {
+  const seen = new Set()
+  let total = 0
+  for (const item of selectedItems.value) {
+    const record = matchRecord(item, weekRecords.value)
+    if (!record || !record.id || seen.has(record.id)) continue
+    seen.add(record.id)
+    total += Number(record.calories) || 0
+  }
+  return total
+})
+
+function doneCalories(item) {
+  const record = matchRecord(item, weekRecords.value)
+  return record && record.calories ? Number(record.calories) : 0
+}
 
 const yearLabel = computed(() => `${new Date().getFullYear()} 年`)
 
@@ -369,6 +386,9 @@ onMounted(loadPrograms)
               <div class="plan-progress-bar">
                 <div class="plan-progress-fill" :style="{ width: weekPercent + '%' }"></div>
               </div>
+              <div v-if="weekBurnedCalories" class="plan-progress-sub">
+                本周已消耗 {{ weekBurnedCalories }} 千卡
+              </div>
             </div>
           </section>
 
@@ -384,11 +404,15 @@ onMounted(loadPrograms)
                 <div v-for="item in selectedItems" :key="item.id" class="plan-item" :class="{ done: isDone(item) }">
                   <div class="plan-item-top">
                     <span class="badge" :class="item.type || item.category">{{ badgeText(item) }}</span>
+                    <span v-if="item.goal" class="badge" :class="item.goal">
+                      {{ item.goal === 'BULK' ? '增肌' : '减脂' }}
+                    </span>
                     <span class="plan-check" :class="{ ok: isDone(item) }">
                       {{ isDone(item) ? '已完成' : '未完成' }}
                     </span>
                   </div>
                   <div v-if="item.note" class="plan-item-meta">{{ item.note }}</div>
+                  <div v-if="doneCalories(item)" class="plan-item-meta">消耗 {{ doneCalories(item) }} 千卡</div>
                   <div v-if="isDone(item)" class="plan-item-note">打卡：{{ recordText(matchRecord(item, weekRecords)) }}</div>
                   <div class="plan-item-actions">
                     <button type="button" @click="openEditItem(item)">编辑</button>

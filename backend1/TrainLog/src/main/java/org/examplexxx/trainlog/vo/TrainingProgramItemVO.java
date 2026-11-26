@@ -13,6 +13,7 @@ public class TrainingProgramItemVO {
     private Long id;
     private String category;
     private String type;
+    private String goal;
     private String note;
     private Integer sort;
 

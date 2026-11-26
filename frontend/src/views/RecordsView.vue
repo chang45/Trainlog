@@ -164,6 +164,7 @@ onMounted(() => {
                 <th style="width: 86px">类型</th>
                 <th style="width: 78px">时长</th>
                 <th style="width: 104px">距离 / 组次</th>
+                <th style="width: 86px">热量</th>
                 <th style="width: 62px">强度</th>
                 <th class="hide-sm">备注</th>
                 <th style="width: 110px; text-align: right">操作</th>
@@ -179,6 +180,7 @@ onMounted(() => {
                 <td><span class="badge" :class="item.type">{{ typeLabel(item.type) }}</span></td>
                 <td class="cell-num">{{ item.durationMinutes }} 分</td>
                 <td class="cell-num">{{ formatLoad(item) || '—' }}</td>
+                <td class="cell-num">{{ item.calories ? item.calories + ' 千卡' : '—' }}</td>
                 <td class="cell-num">{{ item.intensity || '—' }}</td>
                 <td class="cell-notes hide-sm" :title="item.notes || ''">{{ item.notes || '—' }}</td>
                 <td>

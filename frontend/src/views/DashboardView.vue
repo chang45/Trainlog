@@ -1,10 +1,17 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { fetchRecords, fetchStats } from '../api/training'
 import RecordDialog from '../components/RecordDialog.vue'
 import { formatLoad, monthDay, weekdayOf } from '../utils/format'
 import { typeLabel } from '../utils/trainingTypes'
 import { showToast } from '../utils/toast'
+
+const currentUser = inject('currentUser', null)
+const openProfile = inject('openProfile', null)
+const dailyCalories = computed(() => {
+  const value = currentUser?.value?.dailyCalories
+  return value ? Number(value) : null
+})
 
 const stats = ref(null)
 const statsYear = ref(null)
@@ -103,7 +110,23 @@ const heatmap = computed(() => {
 
 const todayRecord = computed(() => {
   const today = statsYear.value?.daily?.find((d) => d.date === todayStr)
-  return { sessions: today?.sessions || 0, minutes: today?.minutes || 0 }
+  return {
+    sessions: today?.sessions || 0,
+    minutes: today?.minutes || 0,
+    calories: today?.calories || 0
+  }
+})
+
+const totalCalories = computed(() => {
+  if (dailyCalories.value == null && !todayRecord.value.calories) return null
+  return (dailyCalories.value || 0) + todayRecord.value.calories
+})
+
+const energyTitle = computed(() => {
+  const base = dailyCalories.value == null
+    ? '每日消耗未设置'
+    : `每日消耗 ${dailyCalories.value}`
+  return `${base} + 今日训练 ${todayRecord.value.calories} cal，点击管理个人资料`
 })
 
 async function load() {
@@ -151,6 +174,16 @@ onMounted(load)
         <p class="page-sub">把训练记下来，进步会慢慢看得见。</p>
       </div>
       <div class="actions">
+        <button
+          class="energy-chip"
+          type="button"
+          :title="energyTitle"
+          @click="openProfile?.()"
+        >
+          <span>今日总消耗</span>
+          <b>{{ totalCalories ?? '—' }}</b>
+          <span>cal</span>
+        </button>
         <button class="btn" type="button" @click="openNew">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"
                stroke-linecap="round">
@@ -314,6 +347,7 @@ onMounted(load)
               <div class="recent-title">{{ item.title }}</div>
               <div class="recent-meta">
                 <template v-if="formatLoad(item)">{{ formatLoad(item) }} · </template>
+                <template v-if="item.calories">{{ item.calories }} 千卡 · </template>
                 RPE {{ item.intensity || '—' }}
               </div>
             </div>

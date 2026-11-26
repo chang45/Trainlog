@@ -18,8 +18,10 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtTokenAdminInterceptor)
-                // /admin/** 是旧的示例路径，/api/training/** 是训练记录接口
-                .addPathPatterns("/admin/**", "/api/training/**")
+                // /admin/** 是旧的示例路径，/api/training/** 是训练接口，
+                // /api/auth/me、/api/auth/profile 需要登录，登录/注册保持放行
+                .addPathPatterns("/admin/**", "/api/training/**", "/api/ai/**",
+                        "/api/auth/me", "/api/auth/profile")
                 .excludePathPatterns("/admin/employee/login");
     }
 

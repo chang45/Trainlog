@@ -2,6 +2,7 @@ package org.examplexxx.trainlog.entity;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -21,6 +22,21 @@ public class SysUser {
 
     /** 昵称 */
     private String nickname;
+
+    /** 身高（厘米） */
+    private BigDecimal heightCm;
+
+    /** 体重（公斤） */
+    private BigDecimal weightKg;
+
+    /** 年龄 */
+    private Integer age;
+
+    /** 性别：MALE / FEMALE */
+    private String gender;
+
+    /** 每日总消耗（千卡） */
+    private Integer dailyCalories;
 
     /** 是否启用：1-启用，0-禁用 */
     private Integer enabled;

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class TrainingProgramServiceImpl implements TrainingProgramService {
@@ -166,8 +167,20 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
 
         item.setCategory(category);
         item.setType(typeCode);
+        item.setGoal(normalizeGoal(dto.getGoal()));
         item.setNote(dto.getNote() == null ? null : dto.getNote().trim());
         item.setSort(dto.getSort() == null ? 0 : Math.max(dto.getSort(), 0));
+    }
+
+    private String normalizeGoal(String goal) {
+        if (goal == null || goal.isBlank()) {
+            return null;
+        }
+        String code = goal.trim().toUpperCase(Locale.ROOT);
+        if (!"BULK".equals(code) && !"CUT".equals(code)) {
+            throw new BizException(400, "阶段目标只能是增肌或减脂");
+        }
+        return code;
     }
 
     private String normalizeCategory(String category) {

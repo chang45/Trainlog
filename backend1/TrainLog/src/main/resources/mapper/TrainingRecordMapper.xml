@@ -85,18 +85,20 @@
           AND training_date BETWEEN #{from} AND #{to}
     </select>
 
-    <!-- 4. 按天统计：日期、训练次数、训练时长 -->
+    <!-- 4. 按天统计：日期、训练次数、训练时长、消耗热量 -->
     <resultMap id="dailyStatMap" type="org.examplexxx.trainlog.vo.TrainingStatsVO$DailyStat">
         <result column="stat_date" property="date"/>
         <result column="sessions" property="sessions"/>
         <result column="minutes" property="minutes"/>
+        <result column="calories" property="calories"/>
     </resultMap>
 
     <select id="daily" resultMap="dailyStatMap">
         SELECT
             training_date                        AS stat_date,
             COUNT(*)                             AS sessions,
-            COALESCE(SUM(duration_minutes), 0)   AS minutes
+            COALESCE(SUM(duration_minutes), 0)   AS minutes,
+            COALESCE(SUM(calories), 0)           AS calories
         FROM training_record
         WHERE user_id = #{userId}
           AND training_date BETWEEN #{from} AND #{to}

@@ -14,6 +14,9 @@ public class TrainingProgramItemDTO {
     /** 具体项目，留空表示该大类任意 */
     private String type;
 
+    /** 阶段目标：BULK 增肌 / CUT 减脂 */
+    private String goal;
+
     /** 备注 */
     private String note;
 

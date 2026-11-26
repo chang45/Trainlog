@@ -45,3 +45,13 @@ export function register(payload) {
     return res.data
   })
 }
+
+/** 当前登录用户信息（含身高体重） */
+export function fetchMe() {
+  return http.get('/auth/me').then((res) => res.data)
+}
+
+/** 保存身高体重 */
+export function updateProfile(payload) {
+  return http.put('/auth/profile', payload).then((res) => res.data)
+}

@@ -58,6 +58,15 @@ app:
 cors:
   allowed-origins: http://localhost:5173,http://127.0.0.1:5173
 
+
+ark:
+  api-key: ${trainlog.ark.api-key}
+  base-url: ${trainlog.ark.base-url}
+  model: ${trainlog.ark.model-id}
+  connect-timeout-seconds: ${trainlog.ark.connect-timeout-seconds}
+  timeout-seconds: ${trainlog.ark.timeout-seconds}
+  retry-times: ${trainlog.ark.retry-times}
+
 logging:
   level:
     root: INFO
@@ -77,3 +86,4 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+

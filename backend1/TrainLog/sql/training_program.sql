@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS training_program_item (
     program_id BIGINT      NOT NULL                COMMENT '所属计划',
     category   VARCHAR(16) NOT NULL                COMMENT '训练大类：STRENGTH / CARDIO',
     type       VARCHAR(16) DEFAULT NULL            COMMENT '具体项目：CHEST/.../RUNNING，NULL 表示任意',
+    goal       VARCHAR(16) DEFAULT NULL            COMMENT '阶段目标：BULK 增肌 / CUT 减脂',
     note       VARCHAR(60) DEFAULT NULL            COMMENT '备注',
     sort       INT         NOT NULL DEFAULT 0      COMMENT '同一天内的排序',
     PRIMARY KEY (id),

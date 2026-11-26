@@ -12,8 +12,8 @@ import java.util.List;
 
 public interface TrainingProgramItemMapper {
 
-    @Insert("INSERT INTO training_program_item (program_id, category, type, note, sort) "
-            + "VALUES (#{programId}, #{category}, #{type}, #{note}, #{sort})")
+    @Insert("INSERT INTO training_program_item (program_id, category, type, goal, note, sort) "
+            + "VALUES (#{programId}, #{category}, #{type}, #{goal}, #{note}, #{sort})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(TrainingProgramItem item);
 
@@ -25,7 +25,7 @@ public interface TrainingProgramItemMapper {
     TrainingProgramItem findById(@Param("id") Long id, @Param("programId") Long programId);
 
     @Update("UPDATE training_program_item SET category = #{category}, "
-            + "type = #{type}, note = #{note}, sort = #{sort} "
+            + "type = #{type}, goal = #{goal}, note = #{note}, sort = #{sort} "
             + "WHERE id = #{id} AND program_id = #{programId}")
     int update(TrainingProgramItem item);
 

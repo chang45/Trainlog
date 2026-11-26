@@ -15,6 +15,7 @@ const emit = defineEmits(['update:open', 'saved'])
 const form = reactive({
   category: 'STRENGTH',
   type: 'CHEST',
+  goal: 'BULK',
   note: ''
 })
 const error = ref('')
@@ -32,6 +33,7 @@ function reset() {
   const options = typesOfCategory(form.category)
   const known = source && (source.type === null || source.type === '' || options.some((option) => option.value === source.type))
   form.type = known ? (source.type || '') : (options[0]?.value || '')
+  form.goal = source?.goal || 'BULK'
   form.note = source?.note || ''
   error.value = ''
 }
@@ -69,6 +71,7 @@ async function submit() {
     const payload = {
       category: form.category,
       type: form.type || null,
+      goal: form.goal,
       note: form.note.trim() || null
     }
     if (props.item) {
@@ -122,6 +125,15 @@ async function submit() {
                 </option>
               </select>
               <span class="hint">选"任意"时，本周任意同大类训练都算完成</span>
+            </div>
+
+            <div class="field">
+              <label for="plan-goal">阶段目标</label>
+              <select id="plan-goal" v-model="form.goal" class="input">
+                <option value="BULK">增肌</option>
+                <option value="CUT">减脂</option>
+              </select>
+              <span class="hint">最近是在增肌还是减脂</span>
             </div>
 
             <div class="field full">

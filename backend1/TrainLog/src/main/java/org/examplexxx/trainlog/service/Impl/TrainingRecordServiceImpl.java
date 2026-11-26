@@ -103,7 +103,7 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
         List<TrainingStatsVO.DailyStat> filled = new ArrayList<>();
         for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
             TrainingStatsVO.DailyStat item = byDate.get(date);
-            filled.add(item != null ? item : new TrainingStatsVO.DailyStat(date, 0, 0));
+            filled.add(item != null ? item : new TrainingStatsVO.DailyStat(date, 0, 0, 0));
         }
         stats.setDaily(filled);
         stats.setByType(trainingRecordMapper.byType(userId, from, to));

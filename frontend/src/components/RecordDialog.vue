@@ -1,5 +1,6 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
+import { estimateCalories } from '../api/ai'
 import { createRecord, updateRecord } from '../api/training'
 import { showToast } from '../utils/toast'
 import {
@@ -34,6 +35,8 @@ const form = reactive({
 })
 const error = ref('')
 const saving = ref(false)
+const aiLoading = ref(false)
+const aiHint = ref('')
 
 const categories = TRAINING_CATEGORIES
 const typeOptions = computed(() => typesOfCategory(form.category))
@@ -64,6 +67,8 @@ function reset() {
   form.intensity = source?.intensity ?? 6
   form.notes = source?.notes || ''
   error.value = ''
+  aiLoading.value = false
+  aiHint.value = ''
 }
 
 // 切换大类时，把具体项目切成该大类的第一个，避免出现"有氧 + 胸部训练"这种组合
@@ -103,6 +108,39 @@ watch(
 function close() {
   if (saving.value) return
   emit('update:open', false)
+}
+
+/** 用火山引擎大模型估算热量，并把结果填进热量输入框 */
+async function estimateCaloriesByAi() {
+  if (aiLoading.value || saving.value) return
+  if (error.value) error.value = ''
+
+  const duration = Number(form.durationMinutes)
+  if (!duration || duration < 1) {
+    error.value = '先填写训练时长，再让 AI 估算'
+    return
+  }
+
+  aiLoading.value = true
+  aiHint.value = ''
+  try {
+    const data = await estimateCalories({
+      type: form.type,
+      durationMinutes: duration,
+      distanceKm: !isCardio.value || form.distanceKm === '' ? null : Number(form.distanceKm),
+      sets: isCardio.value || form.sets === '' ? null : Number(form.sets),
+      reps: isCardio.value || form.reps === '' ? null : Number(form.reps),
+      weightKg: isCardio.value || form.weightKg === '' ? null : Number(form.weightKg),
+      intensity: Number(form.intensity)
+    })
+    form.calories = data.calories
+    const prefix = data.source === 'AI' ? 'AI 估算' : '公式估算'
+    aiHint.value = data.explanation ? `${prefix}：${data.explanation}` : prefix
+  } catch (e) {
+    aiHint.value = e.message
+  } finally {
+    aiLoading.value = false
+  }
 }
 
 async function submit() {
@@ -231,8 +269,15 @@ async function submit() {
 
             <div class="field">
               <label for="record-calories">消耗热量（千卡，选填）</label>
-              <input id="record-calories" v-model="form.calories" class="input" type="number" min="0" max="20000"
-                     placeholder="例如：320" />
+              <div class="calorie-row">
+                <input id="record-calories" v-model="form.calories" class="input" type="number" min="0" max="20000"
+                       placeholder="例如：320" />
+                <button class="btn btn-ghost btn-sm" type="button" :disabled="aiLoading || saving"
+                        @click="estimateCaloriesByAi">
+                  {{ aiLoading ? '估算中…' : 'AI 估算' }}
+                </button>
+              </div>
+              <span v-if="aiHint" class="hint">{{ aiHint }}</span>
             </div>
 
             <div class="field">
