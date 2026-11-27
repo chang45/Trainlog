@@ -2,6 +2,7 @@
 import { computed, inject, onMounted, ref } from 'vue'
 import { fetchRecords, fetchStats } from '../api/training'
 import { fetchPrograms } from '../api/plan'
+import { fetchDietRecords } from '../api/diet'
 import RecordDialog from '../components/RecordDialog.vue'
 import { formatLoad, monthDay, weekdayOf } from '../utils/format'
 import { typeLabel } from '../utils/trainingTypes'
@@ -23,10 +24,25 @@ const recommendedProtein = computed(() => {
   return user.proteinNormal ? Number(user.proteinNormal) : null
 })
 
+const todayProtein = computed(() =>
+  todayDiet.value.reduce((sum, item) => sum + (Number(item.protein) || 0), 0)
+)
+
+const proteinRemaining = computed(() => {
+  if (!recommendedProtein.value) return null
+  return Math.max(0, recommendedProtein.value - todayProtein.value)
+})
+
+const proteinPercent = computed(() => {
+  if (!recommendedProtein.value) return 0
+  return Math.min(100, Math.round((todayProtein.value / recommendedProtein.value) * 100))
+})
+
 const stats = ref(null)
 const statsYear = ref(null)
 const recent = ref([])
 const activeProgram = ref(null)
+const todayDiet = ref([])
 const loading = ref(true)
 const dialogOpen = ref(false)
 const selectedDate = ref('')
@@ -149,16 +165,18 @@ const energyTitle = computed(() => {
 async function load() {
   loading.value = true
   try {
-    const [statsData, yearData, page, programList] = await Promise.all([
+    const [statsData, yearData, page, programList, dietList] = await Promise.all([
       fetchStats(7),
       fetchStats(365),
       fetchRecords({ page: 1, size: 5 }),
-      fetchPrograms()
+      fetchPrograms(),
+      fetchDietRecords(todayStr)
     ])
     stats.value = statsData
     statsYear.value = yearData
     recent.value = page.items
     activeProgram.value = programList.find((program) => program.active) || null
+    todayDiet.value = dietList
   } catch (e) {
     showToast(e.message, 'error')
   } finally {
@@ -191,15 +209,6 @@ onMounted(load)
         <p class="eyebrow">{{ todayLabel }}</p>
         <h1 class="page-title">{{ greeting }}，今天练点什么？</h1>
         <p class="page-sub">把训练记下来，进步会慢慢看得见。</p>
-        <div v-if="activeProgram" class="goal-highlight">
-          <div class="goal-highlight-main">
-            <span class="goal-highlight-label">你现在的计划是</span>
-            <b>{{ goalLabel(activeProgram.goal) }}</b>
-            <span class="goal-highlight-name">· {{ activeProgram.name }}</span>
-            <span class="goal-highlight-name">建议每天摄入蛋白质 </span>
-            <b>{{ recommendedProtein }}g</b>
-          </div>
-        </div>
       </div>
       <div class="actions">
         <button
@@ -221,6 +230,34 @@ onMounted(load)
         </button>
       </div>
     </header>
+
+    <section v-if="activeProgram" class="goal-panel">
+      <div class="goal-panel-left">
+        <span class="goal-panel-eyebrow">当前计划</span>
+        <div class="goal-panel-title">
+          <b>{{ goalLabel(activeProgram.goal) }}</b>
+          <span>{{ activeProgram.name }}</span>
+        </div>
+      </div>
+
+      <div v-if="recommendedProtein" class="goal-panel-right">
+        <div class="goal-panel-protein">
+          <div>
+            <span class="goal-panel-eyebrow">今日蛋白质</span>
+            <div class="goal-panel-values">
+              <b>{{ todayProtein.toFixed(1) }}</b>
+              <span>/ {{ recommendedProtein }} g</span>
+            </div>
+          </div>
+          <div class="goal-panel-remaining" :class="{ done: proteinRemaining === 0 }">
+            {{ proteinRemaining > 0 ? `还差 ${proteinRemaining.toFixed(1)} g` : '已达标' }}
+          </div>
+        </div>
+        <div class="protein-bar">
+          <div class="protein-fill" :style="{ width: proteinPercent + '%' }"></div>
+        </div>
+      </div>
+    </section>
 
     <div class="stat-grid">
       <article class="stat-card">

@@ -83,6 +83,14 @@ function onLogout() {
           </svg>
           <span>训练记录</span>
         </router-link>
+        <router-link to="/diet" class="nav-item">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11.5a8 8 0 0 0 16 0H4Z" />
+            <path d="M8 3.5v3M12 3.5v3M16 3.5v3" />
+          </svg>
+          <span>每日饮食</span>
+        </router-link>
         <router-link to="/stats" class="nav-item">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
                stroke-linecap="round" stroke-linejoin="round">

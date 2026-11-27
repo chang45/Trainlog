@@ -6,6 +6,7 @@ import DashboardView from '../views/DashboardView.vue'
 import PlanView from '../views/PlanView.vue'
 import RecordsView from '../views/RecordsView.vue'
 import StatsView from '../views/StatsView.vue'
+import DietView from '../views/DietView.vue'
 import { hasToken } from '../api/http'
 
 const router = createRouter({
@@ -21,6 +22,7 @@ const router = createRouter({
         { path: '', name: 'dashboard', component: DashboardView },
         { path: 'plan', name: 'plan', component: PlanView },
         { path: 'records', name: 'records', component: RecordsView },
+        { path: 'diet', name: 'diet', component: DietView },
         { path: 'stats', name: 'stats', component: StatsView }
       ]
     },

@@ -60,17 +60,19 @@ cors:
 
 
 ark:
-  api-key: ${trainlog.ark.api-key}
-  base-url: ${trainlog.ark.base-url}
-  model: ${trainlog.ark.model-id}
-  connect-timeout-seconds: ${trainlog.ark.connect-timeout-seconds}
-  timeout-seconds: ${trainlog.ark.timeout-seconds}
-  retry-times: ${trainlog.ark.retry-times}
+  api-key: ${trainlog.ark.api-key:}
+  base-url: ${trainlog.ark.base-url:https://ark.cn-beijing.volces.com/api/v3}
+  model: ${trainlog.ark.model:}
+  connect-timeout-seconds: ${trainlog.ark.connect-timeout-seconds:10}
+  timeout-seconds: ${trainlog.ark.timeout-seconds:60}
+  retry-times: ${trainlog.ark.retry-times:1}
 
 logging:
+  file:
+    name: logs/trainlog.log
   level:
     root: INFO
-    com.trainlog: INFO
+    org.examplexxx.trainlog: DEBUG
 springdoc:
   api-docs:
     path: /v3/api-docs
