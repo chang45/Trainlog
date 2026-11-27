@@ -30,6 +30,13 @@ const editingItem = ref(null)
 
 const selected = computed(() => programs.value.find((program) => program.id === selectedId.value) || null)
 const selectedItems = computed(() => selected.value?.items || [])
+const activeProgram = computed(() => programs.value.find((program) => program.active) || null)
+
+function goalLabel(goal) {
+  if (goal === 'BULK') return '增肌阶段'
+  if (goal === 'CUT') return '减脂阶段'
+  return '维持阶段'
+}
 
 const weekStart = computed(() => addDays(mondayOf(new Date()), weekOffset.value * 7))
 const weekEnd = computed(() => addDays(weekStart.value, 6))
@@ -316,6 +323,12 @@ onMounted(loadPrograms)
       </div>
     </header>
 
+    <div v-if="activeProgram" class="goal-banner">
+      <span>你现在的计划是</span>
+      <b>{{ goalLabel(activeProgram.goal) }}</b>
+      <span class="goal-banner-name">· {{ activeProgram.name }}</span>
+    </div>
+
     <div v-if="loading" class="panel">
       <div class="panel-body loading">正在加载计划…</div>
     </div>
@@ -342,7 +355,7 @@ onMounted(loadPrograms)
             <span v-if="program.active" class="program-badge">当前</span>
           </header>
           <p class="program-desc">{{ program.description || '暂无描述' }}</p>
-          <div class="program-meta">{{ program.items.length }} 项计划</div>
+          <div class="program-meta">{{ goalLabel(program.goal) }} · {{ program.items.length }} 项计划</div>
           <div class="program-actions" @click.stop>
             <button v-if="!program.active" type="button" @click="onActivate(program)">设为当前</button>
             <button type="button" @click="openEditProgram(program)">编辑</button>

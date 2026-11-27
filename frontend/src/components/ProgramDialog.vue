@@ -10,13 +10,20 @@ const props = defineProps({
 
 const emit = defineEmits(['update:open', 'saved'])
 
-const form = reactive({ name: '', description: '' })
+const form = reactive({ name: '', description: '', goal: 'MAINTAIN' })
 const error = ref('')
 const saving = ref(false)
+
+const GOALS = [
+  { value: 'BULK', label: '增肌阶段' },
+  { value: 'CUT', label: '减脂阶段' },
+  { value: 'MAINTAIN', label: '维持阶段' }
+]
 
 function reset() {
   form.name = props.program?.name || ''
   form.description = props.program?.description || ''
+  form.goal = props.program?.goal || 'MAINTAIN'
   error.value = ''
 }
 
@@ -42,7 +49,7 @@ async function submit() {
   }
   saving.value = true
   try {
-    const payload = { name, description: form.description.trim() }
+    const payload = { name, description: form.description.trim(), goal: form.goal }
     if (props.program) {
       await updateProgram(props.program.id, payload)
       showToast('计划已更新')
@@ -89,6 +96,14 @@ async function submit() {
               <label for="program-desc">描述（选填）</label>
               <input id="program-desc" v-model="form.description" class="input" maxlength="200"
                      placeholder="例如：胸背腿 + 有氧，练四休三" />
+            </div>
+
+            <div class="field full">
+              <label for="program-goal">计划目标</label>
+              <select id="program-goal" v-model="form.goal" class="input">
+                <option v-for="item in GOALS" :key="item.value" :value="item.value">{{ item.label }}</option>
+              </select>
+              <span class="hint">当前计划是增肌还是减脂，会在概览和计划页提示</span>
             </div>
           </div>
 

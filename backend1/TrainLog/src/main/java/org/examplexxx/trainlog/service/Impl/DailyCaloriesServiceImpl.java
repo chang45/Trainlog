@@ -17,7 +17,7 @@ import com.volcengine.ark.runtime.service.ArkService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.examplexxx.trainlog.context.BaseContext;
-import org.examplexxx.trainlog.dto.DailyCaloriesRequest;
+import org.examplexxx.trainlog.dto.DailyCaloriesDTO;
 import org.examplexxx.trainlog.entity.SysUser;
 import org.examplexxx.trainlog.exception.BizException;
 import org.examplexxx.trainlog.mapper.AuthMapper;
@@ -52,7 +52,7 @@ public class DailyCaloriesServiceImpl implements DailyCaloriesService {
 
 
     @Override
-    public DailyCaloriesVO estimate(DailyCaloriesRequest request) {
+    public DailyCaloriesVO estimate(DailyCaloriesDTO request) {
         Long userId = currentUserId();
         SysUser user = authMapper.findById(userId);
 

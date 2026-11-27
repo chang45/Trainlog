@@ -1,6 +1,7 @@
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
 import { fetchRecords, fetchStats } from '../api/training'
+import { fetchPrograms } from '../api/plan'
 import RecordDialog from '../components/RecordDialog.vue'
 import { formatLoad, monthDay, weekdayOf } from '../utils/format'
 import { typeLabel } from '../utils/trainingTypes'
@@ -13,9 +14,19 @@ const dailyCalories = computed(() => {
   return value ? Number(value) : null
 })
 
+const recommendedProtein = computed(() => {
+  const user = currentUser?.value
+  if (!user) return null
+  const goal = activeProgram.value?.goal || 'MAINTAIN'
+  if (goal === 'BULK') return user.proteinBulk ? Number(user.proteinBulk) : null
+  if (goal === 'CUT') return user.proteinCut ? Number(user.proteinCut) : null
+  return user.proteinNormal ? Number(user.proteinNormal) : null
+})
+
 const stats = ref(null)
 const statsYear = ref(null)
 const recent = ref([])
+const activeProgram = ref(null)
 const loading = ref(true)
 const dialogOpen = ref(false)
 const selectedDate = ref('')
@@ -42,6 +53,12 @@ const greeting = computed(() => {
   if (hour < 18) return '下午好'
   return '晚上好'
 })
+
+function goalLabel(goal) {
+  if (goal === 'BULK') return '增肌阶段'
+  if (goal === 'CUT') return '减脂阶段'
+  return '维持阶段'
+}
 
 const chart = computed(() => {
   const daily = stats.value?.daily || []
@@ -132,14 +149,16 @@ const energyTitle = computed(() => {
 async function load() {
   loading.value = true
   try {
-    const [statsData, yearData, page] = await Promise.all([
+    const [statsData, yearData, page, programList] = await Promise.all([
       fetchStats(7),
       fetchStats(365),
-      fetchRecords({ page: 1, size: 5 })
+      fetchRecords({ page: 1, size: 5 }),
+      fetchPrograms()
     ])
     stats.value = statsData
     statsYear.value = yearData
     recent.value = page.items
+    activeProgram.value = programList.find((program) => program.active) || null
   } catch (e) {
     showToast(e.message, 'error')
   } finally {
@@ -172,6 +191,15 @@ onMounted(load)
         <p class="eyebrow">{{ todayLabel }}</p>
         <h1 class="page-title">{{ greeting }}，今天练点什么？</h1>
         <p class="page-sub">把训练记下来，进步会慢慢看得见。</p>
+        <div v-if="activeProgram" class="goal-highlight">
+          <div class="goal-highlight-main">
+            <span class="goal-highlight-label">你现在的计划是</span>
+            <b>{{ goalLabel(activeProgram.goal) }}</b>
+            <span class="goal-highlight-name">· {{ activeProgram.name }}</span>
+            <span class="goal-highlight-name">建议每天摄入蛋白质 </span>
+            <b>{{ recommendedProtein }}g</b>
+          </div>
+        </div>
       </div>
       <div class="actions">
         <button

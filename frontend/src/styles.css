@@ -2016,6 +2016,70 @@ textarea.input {
   color: var(--ink);
 }
 
+.goal-highlight {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+
+.goal-highlight-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.goal-highlight-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.goal-highlight b {
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--accent);
+}
+
+.goal-highlight-name {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.goal-protein {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.goal-protein b {
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.goal-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.goal-banner b {
+  color: var(--accent);
+  font-size: 15px;
+}
+
+.goal-banner-name {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .badge.BULK {
   background: #e8f0ff;
   color: #2f5bb7;

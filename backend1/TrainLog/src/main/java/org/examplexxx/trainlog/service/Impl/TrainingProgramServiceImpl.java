@@ -59,6 +59,7 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         program.setUserId(userId);
         program.setName(name);
         program.setDescription(trimToNull(dto.getDescription(), 200, "描述最多 200 个字符"));
+        program.setGoal(normalizeProgramGoal(dto.getGoal()));
         // 第一个计划默认设为当前计划
         program.setActive(count == 0);
         program.setCreatedAt(now);
@@ -79,6 +80,7 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         TrainingProgram program = requireOwned(id, userId);
         program.setName(requireName(dto));
         program.setDescription(trimToNull(dto.getDescription(), 200, "描述最多 200 个字符"));
+        program.setGoal(normalizeProgramGoal(dto.getGoal()));
         program.setUpdatedAt(LocalDateTime.now());
         trainingProgramMapper.update(program);
         return toVO(program);
@@ -179,6 +181,17 @@ public class TrainingProgramServiceImpl implements TrainingProgramService {
         String code = goal.trim().toUpperCase(Locale.ROOT);
         if (!"BULK".equals(code) && !"CUT".equals(code)) {
             throw new BizException(400, "阶段目标只能是增肌或减脂");
+        }
+        return code;
+    }
+
+    private String normalizeProgramGoal(String goal) {
+        if (goal == null || goal.isBlank()) {
+            return "MAINTAIN";
+        }
+        String code = goal.trim().toUpperCase(Locale.ROOT);
+        if (!"BULK".equals(code) && !"CUT".equals(code) && !"MAINTAIN".equals(code)) {
+            throw new BizException(400, "计划目标只能是增肌、减脂或维持");
         }
         return code;
     }

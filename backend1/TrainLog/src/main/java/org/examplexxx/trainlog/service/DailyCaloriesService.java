@@ -1,6 +1,6 @@
 package org.examplexxx.trainlog.service;
 
-import org.examplexxx.trainlog.dto.DailyCaloriesRequest;
+import org.examplexxx.trainlog.dto.DailyCaloriesDTO;
 import org.examplexxx.trainlog.vo.DailyCaloriesVO;
 
 /**
@@ -8,5 +8,5 @@ import org.examplexxx.trainlog.vo.DailyCaloriesVO;
  */
 public interface DailyCaloriesService {
 
-    DailyCaloriesVO estimate(DailyCaloriesRequest request);
+    DailyCaloriesVO estimate(DailyCaloriesDTO request);
 }

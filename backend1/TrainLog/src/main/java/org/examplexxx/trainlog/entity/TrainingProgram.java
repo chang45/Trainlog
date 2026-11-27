@@ -23,6 +23,9 @@ public class TrainingProgram {
     /** 描述 */
     private String description;
 
+    /** 计划目标：BULK 增肌 / CUT 减脂 / MAINTAIN 维持 */
+    private String goal;
+
     /** 是否当前计划：每人最多一个 true */
     private Boolean active;
 

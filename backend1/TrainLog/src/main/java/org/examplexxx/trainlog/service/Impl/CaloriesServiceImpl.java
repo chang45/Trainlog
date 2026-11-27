@@ -18,7 +18,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.examplexxx.trainlog.constant.TrainingType;
 import org.examplexxx.trainlog.context.BaseContext;
-import org.examplexxx.trainlog.dto.CaloriesRequest;
+import org.examplexxx.trainlog.dto.CaloriesDTO;
 import org.examplexxx.trainlog.entity.SysUser;
 import org.examplexxx.trainlog.exception.BizException;
 import org.examplexxx.trainlog.mapper.AuthMapper;
@@ -54,7 +54,7 @@ public class CaloriesServiceImpl implements CaloriesService {
     private AuthMapper authMapper;
 
     @Override
-    public CaloriesVO estimate(CaloriesRequest request) {
+    public CaloriesVO estimate(CaloriesDTO request) {
         Long userId = currentUserId();
         TrainingType type = validate(request);
 
@@ -82,7 +82,7 @@ public class CaloriesServiceImpl implements CaloriesService {
 
     // ==================== 调用大模型 ====================
 
-    private String callArk(CaloriesRequest request, TrainingType type,
+    private String callArk(CaloriesDTO request, TrainingType type,
                            BigDecimal height, BigDecimal weight, SysUser user) {
         CreateResponsesRequest arkRequest = CreateResponsesRequest.builder()
                 .model(arkProperties.getModel())
@@ -105,7 +105,7 @@ public class CaloriesServiceImpl implements CaloriesService {
         return extractText(response);
     }
 
-    private String buildPrompt(CaloriesRequest request, TrainingType type,
+    private String buildPrompt(CaloriesDTO request, TrainingType type,
                                BigDecimal height, BigDecimal weight, SysUser user) {
         StringBuilder sb = new StringBuilder();
         sb.append("请根据以下训练数据估算消耗的热量。\n");
@@ -195,7 +195,7 @@ public class CaloriesServiceImpl implements CaloriesService {
 
     // ==================== 兜底公式 ====================
 
-    private CaloriesVO formula(CaloriesRequest request, TrainingType type, BigDecimal weight) {
+    private CaloriesVO formula(CaloriesDTO request, TrainingType type, BigDecimal weight) {
         double kilograms = weight == null ? 65.0 : weight.doubleValue();
         double hours = request.getDurationMinutes() / 60.0;
         int rpe = request.getIntensity() == null ? 6 : request.getIntensity();
@@ -220,7 +220,7 @@ public class CaloriesServiceImpl implements CaloriesService {
 
     // ==================== 校验 ====================
 
-    private TrainingType validate(CaloriesRequest request) {
+    private TrainingType validate(CaloriesDTO request) {
         if (request == null) {
             throw new BizException(400, "请求体不能为空");
         }

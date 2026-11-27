@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  * 用户身高体重由后端从当前登录用户读，不需要前端传。
  */
 @Data
-public class CaloriesRequest {
+public class CaloriesDTO {
 
     /** 具体项目：CHEST / SHOULDER / BACK / LEG / INCLINE / CYCLING / RUNNING */
     private String type;

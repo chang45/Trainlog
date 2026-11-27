@@ -6,8 +6,10 @@ import org.examplexxx.trainlog.context.BaseContext;
 import org.examplexxx.trainlog.dto.LoginDTO;
 import org.examplexxx.trainlog.dto.ProfileDTO;
 import org.examplexxx.trainlog.entity.SysUser;
+import org.examplexxx.trainlog.entity.UserNutritionTarget;
 import org.examplexxx.trainlog.exception.BizException;
 import org.examplexxx.trainlog.mapper.AuthMapper;
+import org.examplexxx.trainlog.mapper.UserNutritionTargetMapper;
 import org.examplexxx.trainlog.properties.JwtProperties;
 import org.examplexxx.trainlog.service.AuthService;
 import org.examplexxx.trainlog.service.CaptchaService;
@@ -33,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AuthMapper authMapper;
+    @Autowired
+    private UserNutritionTargetMapper nutritionTargetMapper;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
@@ -145,7 +149,13 @@ public class AuthServiceImpl implements AuthService {
         String token = JwtUtil.createJWT(jwtProperties.getAdminSecretKey(),
                 jwtProperties.getAdminTtl(), claims);
         return new LoginVO(token, jwtProperties.getAdminTokenName(),
-                jwtProperties.getAdminTtl() / 1000, UserVO.from(user));
+                jwtProperties.getAdminTtl() / 1000, toUserVO(user));
+    }
+
+    /** 用户 + 营养目标拼成前端需要的结构 */
+    private UserVO toUserVO(SysUser user) {
+        UserNutritionTarget target = nutritionTargetMapper.findByUserId(user.getId());
+        return UserVO.from(user, target);
     }
 
     @Override
@@ -158,7 +168,7 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             throw new BizException(401, "账号不存在，请重新登录");
         }
-        return UserVO.from(user);
+        return toUserVO(user);
     }
 
     @Override
@@ -194,9 +204,28 @@ public class AuthServiceImpl implements AuthService {
         user.setWeightKg(weight.setScale(2, RoundingMode.HALF_UP));
         user.setAge(age);
         user.setGender(gender);
-        user.setDailyCalories(calculateDailyCalories(height, weight, age, gender));
         authMapper.updateProfile(user);
-        return UserVO.from(user);
+
+        int dailyCalories = calculateDailyCalories(height, weight, age, gender);
+        int proteinNormal = (int) Math.round(weight.doubleValue() * 0.9);
+        int proteinBulk = (int) Math.round(weight.doubleValue() * 1.8);
+        int proteinCut = (int) Math.round(weight.doubleValue() * 2.0);
+        proteinNormal = Math.max(30, Math.min(proteinNormal, 400));
+        proteinBulk = Math.max(proteinNormal, Math.min(proteinBulk, 400));
+        proteinCut = Math.max(proteinNormal, Math.min(proteinCut, 400));
+
+        LocalDateTime now = LocalDateTime.now();
+        UserNutritionTarget target = new UserNutritionTarget();
+        target.setUserId(userId);
+        target.setDailyCalories(dailyCalories);
+        target.setProteinNormal(proteinNormal);
+        target.setProteinBulk(proteinBulk);
+        target.setProteinCut(proteinCut);
+        target.setCreatedAt(now);
+        target.setUpdatedAt(now);
+        nutritionTargetMapper.upsert(target);
+
+        return toUserVO(user);
     }
 
     /** 保存资料时顺带算好每日总消耗（Mifflin-St Jeor × 轻度活动） */

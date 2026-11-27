@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS training_program (
     user_id     BIGINT       NOT NULL                COMMENT '所属用户',
     name        VARCHAR(50)  NOT NULL                COMMENT '计划名，例如：一周四练-增肌',
     description VARCHAR(200) DEFAULT NULL            COMMENT '描述',
+    goal        VARCHAR(16)  NOT NULL DEFAULT 'MAINTAIN' COMMENT '计划目标：BULK 增肌 / CUT 减脂 / MAINTAIN 维持',
     active      BOOLEAN      NOT NULL DEFAULT FALSE  COMMENT '是否当前计划，每人最多一个',
     created_at  DATETIME(6)  NOT NULL                COMMENT '创建时间',
     updated_at  DATETIME(6)  NOT NULL                COMMENT '更新时间',

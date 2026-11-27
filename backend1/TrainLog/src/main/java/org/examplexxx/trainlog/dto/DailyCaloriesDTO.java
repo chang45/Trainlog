@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  * 不传的字段用当前登录用户资料里的值。
  */
 @Data
-public class DailyCaloriesRequest {
+public class DailyCaloriesDTO {
 
     private BigDecimal heightCm;
 

@@ -35,9 +35,6 @@ public class SysUser {
     /** 性别：MALE / FEMALE */
     private String gender;
 
-    /** 每日总消耗（千卡） */
-    private Integer dailyCalories;
-
     /** 是否启用：1-启用，0-禁用 */
     private Integer enabled;
 

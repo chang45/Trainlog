@@ -17,6 +17,9 @@ public class TrainingProgramDTO {
     /** 描述 */
     private String description;
 
+    /** 计划目标：BULK 增肌 / CUT 减脂 / MAINTAIN 维持 */
+    private String goal;
+
     /** 初始计划项（选填） */
     private List<TrainingProgramItemDTO> items;
 }

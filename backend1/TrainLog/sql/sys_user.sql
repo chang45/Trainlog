@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS sys_user (
     weight_kg     DECIMAL(5,2) DEFAULT NULL            COMMENT '体重（公斤）',
     age           INT          DEFAULT NULL            COMMENT '年龄',
     gender        VARCHAR(8)   DEFAULT NULL            COMMENT '性别：MALE/FEMALE',
-    daily_calories INT         DEFAULT NULL            COMMENT '每日总消耗（千卡）',
     enabled       TINYINT(1)   NOT NULL DEFAULT 1      COMMENT '是否启用：1-启用，0-禁用',
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     last_login_at DATETIME     DEFAULT NULL            COMMENT '最后登录时间',

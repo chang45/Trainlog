@@ -13,8 +13,8 @@ import java.util.List;
 
 public interface TrainingProgramMapper {
 
-    @Insert("INSERT INTO training_program (user_id, name, description, active, created_at, updated_at) "
-            + "VALUES (#{userId}, #{name}, #{description}, #{active}, #{createdAt}, #{updatedAt})")
+    @Insert("INSERT INTO training_program (user_id, name, description, goal, active, created_at, updated_at) "
+            + "VALUES (#{userId}, #{name}, #{description}, #{goal}, #{active}, #{createdAt}, #{updatedAt})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(TrainingProgram program);
 
@@ -25,7 +25,7 @@ public interface TrainingProgramMapper {
     List<TrainingProgram> findByUser(@Param("userId") Long userId);
 
     @Update("UPDATE training_program SET name = #{name}, description = #{description}, "
-            + "updated_at = #{updatedAt} WHERE id = #{id} AND user_id = #{userId}")
+            + "goal = #{goal}, updated_at = #{updatedAt} WHERE id = #{id} AND user_id = #{userId}")
     int update(TrainingProgram program);
 
     @Update("UPDATE training_program SET active = #{active}, updated_at = #{updatedAt} "

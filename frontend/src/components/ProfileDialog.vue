@@ -25,6 +25,21 @@ const dailyCalories = computed(() => {
   return value ? Number(value) : null
 })
 
+const proteinNormal = computed(() => {
+  const value = props.user?.proteinNormal
+  return value ? Number(value) : null
+})
+
+const proteinBulk = computed(() => {
+  const value = props.user?.proteinBulk
+  return value ? Number(value) : null
+})
+
+const proteinCut = computed(() => {
+  const value = props.user?.proteinCut
+  return value ? Number(value) : null
+})
+
 const GENDERS = [
   { value: 'MALE', label: '男' },
   { value: 'FEMALE', label: '女' }
@@ -167,6 +182,20 @@ async function submit() {
                 <span>每日总消耗 <b>{{ dailyCalories }}</b> 千卡</span>
               </div>
               <span v-else class="hint">数据库暂无每日消耗，保存资料后自动计算并写入</span>
+            </div>
+
+            <div class="field full daily-card">
+              <div class="daily-head">
+                <span class="daily-title">每日蛋白质</span>
+                <span v-if="proteinNormal" class="daily-source">数据库</span>
+              </div>
+
+              <div v-if="proteinNormal" class="daily-values">
+                <span>正常维持 <b>{{ proteinNormal }}</b> g</span>
+                <span>增肌 <b>{{ proteinBulk }}</b> g</span>
+                <span>减脂 <b>{{ proteinCut }}</b> g</span>
+              </div>
+              <span v-else class="hint">数据库暂无蛋白质数据，保存资料后自动计算并写入</span>
             </div>
           </div>
 

@@ -16,6 +16,7 @@ public class TrainingProgramVO {
     private Long id;
     private String name;
     private String description;
+    private String goal;
 
     /** 是否当前计划 */
     private Boolean active;

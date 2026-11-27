@@ -16,3 +16,11 @@ export function estimateCalories(payload) {
 export function estimateDailyCalories(payload = {}) {
   return http.post('/ai/daily-calories', payload).then((res) => res.data)
 }
+
+/**
+ * 推算每天正常维持和增肌所需的蛋白质。
+ * 返回：{ normalGrams, bulkGrams, source, explanation }
+ */
+export function estimateProtein(payload = {}) {
+  return http.post('/ai/protein', payload).then((res) => res.data)
+}
