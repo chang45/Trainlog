@@ -11,6 +11,28 @@ spring:
       host: ${trainlog.redis.host}
       port: ${trainlog.redis.port}
       database: ${trainlog.redis.database}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:127.0.0.1}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    connection-timeout: 5s
+    # 开启发布确认和退回，方便确认消息有没有到 broker/队列
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: auto
+        prefetch: 10
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          initial-interval: 1s
+          max-attempts: 3
+          multiplier: 2
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: "jdbc:mysql://${trainlog.datasource.host}:${trainlog.datasource.port}/${trainlog.datasource.database}?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true"

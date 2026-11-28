@@ -1,6 +1,12 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { createDietRecord, deleteDietRecord, fetchDietRecords, recognizeDiet } from '../api/diet'
+import {
+  deleteDietRecord,
+  fetchDietRecords,
+  fetchRecognitionTask,
+  recognizeDietAsync,
+  updateDietRecord
+} from '../api/diet'
 import { compressImage } from '../utils/image'
 import { showToast } from '../utils/toast'
 
@@ -25,6 +31,7 @@ const fileInput = ref(null)
 const activeMeal = ref('BREAKFAST')
 
 const dialogOpen = ref(false)
+const editingId = ref(null)
 const saving = ref(false)
 const form = reactive({
   mealType: 'BREAKFAST',
@@ -77,22 +84,57 @@ async function onFileChange(event) {
   recognizing.value = activeMeal.value
   try {
     const imageBase64 = await compressImage(file)
-    const result = await recognizeDiet({ mealType: activeMeal.value, imageBase64 })
-    form.mealType = activeMeal.value
-    form.foodName = result.foodName || ''
-    form.calories = result.calories ?? ''
-    form.protein = result.protein ?? ''
-    form.carbs = result.carbs ?? ''
-    form.fat = result.fat ?? ''
-    dialogOpen.value = true
+    const taskId = await recognizeDietAsync({
+      mealType: activeMeal.value,
+      imageBase64,
+      eatenDate: date.value
+    })
+    showToast('已提交识别，正在后台处理…')
+    pollTask(taskId)
   } catch (e) {
     showToast(e.message, 'error')
-  } finally {
     recognizing.value = ''
   }
 }
 
-async function saveRecord() {
+async function pollTask(taskId) {
+  for (let i = 0; i < 40; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const task = await fetchRecognitionTask(taskId)
+      if (task.status === 'SUCCESS') {
+        showToast('识别完成，已自动加入饮食记录')
+        await load()
+        recognizing.value = ''
+        return
+      }
+      if (task.status === 'FAILED') {
+        showToast(task.errorMessage || '识别失败，请换一张图重试', 'error')
+        recognizing.value = ''
+        return
+      }
+    } catch (e) {
+      showToast(e.message, 'error')
+      recognizing.value = ''
+      return
+    }
+  }
+  showToast('识别超时，请稍后刷新查看', 'error')
+  recognizing.value = ''
+}
+
+function openEdit(item) {
+  editingId.value = item.id
+  form.mealType = item.mealType
+  form.foodName = item.foodName
+  form.calories = item.calories ?? ''
+  form.protein = item.protein ?? ''
+  form.carbs = item.carbs ?? ''
+  form.fat = item.fat ?? ''
+  dialogOpen.value = true
+}
+
+async function saveEdit() {
   if (saving.value) return
   if (!form.foodName.trim()) {
     showToast('请填写食物名', 'error')
@@ -100,7 +142,7 @@ async function saveRecord() {
   }
   saving.value = true
   try {
-    await createDietRecord({
+    await updateDietRecord(editingId.value, {
       mealType: form.mealType,
       foodName: form.foodName.trim(),
       calories: form.calories === '' ? null : Number(form.calories),
@@ -109,7 +151,7 @@ async function saveRecord() {
       fat: form.fat === '' ? null : Number(form.fat),
       eatenDate: date.value
     })
-    showToast('已加入今日饮食')
+    showToast('饮食记录已更新')
     dialogOpen.value = false
     await load()
   } catch (e) {
@@ -201,7 +243,10 @@ onMounted(load)
                   {{ item.calories ?? 0 }} 千卡 · 蛋白 {{ item.protein ?? 0 }}g · 碳水 {{ item.carbs ?? 0 }}g
                 </span>
               </div>
-              <button class="link-btn" type="button" @click="remove(item)">删除</button>
+              <div class="diet-item-actions">
+                <button class="link-btn" type="button" @click="openEdit(item)">编辑</button>
+                <button class="link-btn" type="button" @click="remove(item)">删除</button>
+              </div>
             </div>
           </div>
         </div>
@@ -210,11 +255,11 @@ onMounted(load)
 
     <Teleport to="body">
       <div v-if="dialogOpen" class="overlay" @click.self="dialogOpen = false">
-        <section class="dialog" role="dialog" aria-modal="true" aria-label="识别结果">
+        <section class="dialog" role="dialog" aria-modal="true" aria-label="编辑饮食记录">
           <header class="dialog-head">
             <div>
-              <h2>识别结果 · {{ mealLabel(form.mealType) }}</h2>
-              <p>AI 估算，份量不准时可以直接改。</p>
+              <h2>编辑饮食记录</h2>
+              <p>AI 识别结果可以手动改，改完保存即可。</p>
             </div>
             <button class="icon-btn" type="button" title="关闭" @click="dialogOpen = false">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -224,9 +269,15 @@ onMounted(load)
             </button>
           </header>
 
-          <form class="dialog-body" @submit.prevent="saveRecord">
+          <form class="dialog-body" @submit.prevent="saveEdit">
             <div class="form-grid">
-              <div class="field full">
+              <div class="field">
+                <label for="diet-meal">餐次</label>
+                <select id="diet-meal" v-model="form.mealType" class="input">
+                  <option v-for="meal in MEALS" :key="meal.value" :value="meal.value">{{ meal.label }}</option>
+                </select>
+              </div>
+              <div class="field">
                 <label for="diet-food">食物</label>
                 <input id="diet-food" v-model="form.foodName" class="input" maxlength="100" />
               </div>
@@ -251,8 +302,8 @@ onMounted(load)
 
           <footer class="dialog-foot">
             <button class="btn btn-ghost" type="button" :disabled="saving" @click="dialogOpen = false">取消</button>
-            <button class="btn" type="button" :disabled="saving" @click="saveRecord">
-              {{ saving ? '保存中' : '加入记录' }}
+            <button class="btn" type="button" :disabled="saving" @click="saveEdit">
+              {{ saving ? '保存中' : '保存修改' }}
             </button>
           </footer>
         </section>

@@ -1,6 +1,5 @@
 package org.examplexxx.trainlog.service.Impl;
 
-import lombok.Data;
 import org.examplexxx.trainlog.context.BaseContext;
 import org.examplexxx.trainlog.dto.DietRecordDTO;
 import org.examplexxx.trainlog.entity.DietRecord;
@@ -8,7 +7,6 @@ import org.examplexxx.trainlog.exception.BizException;
 import org.examplexxx.trainlog.mapper.DietRecordMapper;
 import org.examplexxx.trainlog.service.DietService;
 import org.examplexxx.trainlog.vo.DietRecordVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,15 +17,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-@Data
 @Service
 public class DietServiceImpl implements DietService {
 
     private static final Set<String> MEAL_TYPES = Set.of("BREAKFAST", "LUNCH", "DINNER");
 
-    @Autowired
-    private DietRecordMapper dietRecordMapper;
+    private final DietRecordMapper dietRecordMapper;
 
+    public DietServiceImpl(DietRecordMapper dietRecordMapper) {
+        this.dietRecordMapper = dietRecordMapper;
+    }
 
     @Override
     public List<DietRecordVO> list(LocalDate date) {
@@ -41,7 +40,45 @@ public class DietServiceImpl implements DietService {
 
     @Override
     public DietRecordVO create(DietRecordDTO dto) {
+        return createForUser(currentUserId(), dto);
+    }
+
+    @Override
+    public DietRecordVO createForUser(Long userId, DietRecordDTO dto) {
+        if (userId == null) {
+            throw new BizException(401, "用户不存在");
+        }
+        DietRecord record = buildRecord(userId, dto);
+        record.setCreatedAt(LocalDateTime.now());
+        dietRecordMapper.insert(record);
+        return DietRecordVO.from(record);
+    }
+
+    @Override
+    public DietRecordVO update(Long id, DietRecordDTO dto) {
         Long userId = currentUserId();
+        DietRecord existing = dietRecordMapper.findById(id, userId);
+        if (existing == null) {
+            throw new BizException(404, "饮食记录不存在或不属于你");
+        }
+        DietRecord record = buildRecord(userId, dto);
+        record.setId(id);
+        if (dto.getEatenDate() == null) {
+            record.setEatenDate(existing.getEatenDate());
+        }
+        dietRecordMapper.update(record);
+        return DietRecordVO.from(record);
+    }
+
+    @Override
+    public void delete(Long id) {
+        Long userId = currentUserId();
+        if (id == null || dietRecordMapper.delete(id, userId) == 0) {
+            throw new BizException(404, "饮食记录不存在或不属于你");
+        }
+    }
+
+    private DietRecord buildRecord(Long userId, DietRecordDTO dto) {
         if (dto == null) {
             throw new BizException(400, "请求体不能为空");
         }
@@ -69,17 +106,7 @@ public class DietServiceImpl implements DietService {
         record.setCarbs(carbs);
         record.setFat(fat);
         record.setEatenDate(dto.getEatenDate() == null ? LocalDate.now() : dto.getEatenDate());
-        record.setCreatedAt(LocalDateTime.now());
-        dietRecordMapper.insert(record);
-        return DietRecordVO.from(record);
-    }
-
-    @Override
-    public void delete(Long id) {
-        Long userId = currentUserId();
-        if (id == null || dietRecordMapper.delete(id, userId) == 0) {
-            throw new BizException(404, "饮食记录不存在或不属于你");
-        }
+        return record;
     }
 
     private String normalizeMealType(String mealType) {

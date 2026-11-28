@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.examplexxx.trainlog.entity.DietRecord;
 
 import java.time.LocalDate;
@@ -23,6 +24,14 @@ public interface DietRecordMapper {
             + "ORDER BY FIELD(meal_type, 'BREAKFAST', 'LUNCH', 'DINNER'), id")
     List<DietRecord> findByUserAndDate(@Param("userId") Long userId,
                                        @Param("date") LocalDate date);
+
+    @Select("SELECT * FROM diet_record WHERE id = #{id} AND user_id = #{userId}")
+    DietRecord findById(@Param("id") Long id, @Param("userId") Long userId);
+
+    @Update("UPDATE diet_record SET meal_type = #{mealType}, food_name = #{foodName}, "
+            + "calories = #{calories}, protein = #{protein}, carbs = #{carbs}, fat = #{fat}, "
+            + "eaten_date = #{eatenDate} WHERE id = #{id} AND user_id = #{userId}")
+    int update(DietRecord record);
 
     @Delete("DELETE FROM diet_record WHERE id = #{id} AND user_id = #{userId}")
     int delete(@Param("id") Long id, @Param("userId") Long userId);

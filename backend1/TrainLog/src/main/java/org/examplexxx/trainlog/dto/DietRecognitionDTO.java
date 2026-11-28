@@ -2,6 +2,8 @@ package org.examplexxx.trainlog.dto;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+
 /**
  * 图片识别饮食入参。
  */
@@ -13,4 +15,7 @@ public class DietRecognitionDTO {
 
     /** data:image/jpeg;base64,... */
     private String imageBase64;
+
+    /** 记录到哪一天，不传默认今天 */
+    private LocalDate eatenDate;
 }
